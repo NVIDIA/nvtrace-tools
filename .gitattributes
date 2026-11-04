@@ -1,0 +1,4 @@
+# Normalize text files and keep the repository LF-native.
+* text=auto eol=lf
+
+*.pdf binary
