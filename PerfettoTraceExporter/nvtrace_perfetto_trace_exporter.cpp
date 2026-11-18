@@ -85,11 +85,19 @@ static bool ExportToPerfetto(nv::trace::TraceStreamDatabaseReader<TStorageReader
 
     nv::trace::Codec::DataModel<DatabaseReaderType> dataModel;
     DataModelBuilder dataModelBuilder(dataModel);
-    dataModelBuilder.Build(source, dataModelBuilderOptions);
+    if (!dataModelBuilder.Build(source, dataModelBuilderOptions))
+    {
+        std::cerr << "Error: Failed to read the TSF DataBlocks to export.\n";
+        return false;
+    }
 
     auto traceExporterOptions = CreatePerfettoTraceExporterOptions(options);
     nv::trace::PerfettoTraceExporter<DatabaseReaderType> perfettoTraceExporter(dataModel, traceExporterOptions);
-    perfettoTraceExporter.Export(outputPath);
+    if (!perfettoTraceExporter.Export(outputPath))
+    {
+        std::cerr << "Error: Failed to write Perfetto trace: " << outputPath.string() << '\n';
+        return false;
+    }
 
     std::cout << "Successfully exported Perfetto trace to: " << outputPath.string() << '\n';
     return true;
@@ -737,7 +745,10 @@ static int ProcessTsfDatabaseDir(const PerfettoTraceExporterCliOptions& options)
     {
         exportOptions.endTimeUtcNsec = fullTimespan.endUtcNsec;
     }
-    ExportToPerfetto(databaseReader, CreateTsfOutputPath(tsfDatabaseDirPath), exportOptions);
+    if (!ExportToPerfetto(databaseReader, CreateTsfOutputPath(tsfDatabaseDirPath), exportOptions))
+    {
+        return EXIT_FAILURE;
+    }
 
     return EXIT_SUCCESS;
 }

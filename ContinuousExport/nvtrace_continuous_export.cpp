@@ -664,7 +664,11 @@ namespace {
         {
             std::cout << "Exporting snapshot " << manifest.snapshotNumber << " to " << outputPath.string() << ".\n";
         }
-        exporter.Export(outputPath);
+        if (!exporter.Export(outputPath))
+        {
+            std::cerr << "Error: failed to write snapshot " << manifest.snapshotNumber << " Perfetto trace " << outputPath.string() << ".\n";
+            return false;
+        }
         return true;
     }
 
